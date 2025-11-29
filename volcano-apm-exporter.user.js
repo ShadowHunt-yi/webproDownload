@@ -6,7 +6,20 @@ function main() {
   // 默认应用ID映射配置
   const DEFAULT_APP_MAPPING = {
     591025: "国内酒店H5",
-    602838: "商家平台H5",
+    602838: "商家系统H5",
+    629003: "国内机票H5",
+    640325: "网约车",
+    640327: "国内火车票H5",
+    640328: "国内火车票PC",
+    651844: "商家系统PC",
+    671354: "表单引擎",
+    677896: "用户H5网站",
+    678246: "用户网站",
+    678248: "平台PC网站",
+    680184: "国内机票PC",
+    698915: "审批",
+    702271: "国际机票H5",
+    1000844: "国际机票PC",
   };
 
   // API配置
@@ -23,6 +36,20 @@ function main() {
     "30days": { label: "最近30天", days: 30 },
     "90days": { label: "最近90天", days: 90 },
     custom: { label: "自定义时间", days: 0 },
+  };
+
+  // 数据类型配置
+  const DATA_TYPES = {
+    page_performance: {
+      name: "页面性能",
+      requestBody: buildPagePerformanceRequestBody,
+      convertToJSON: convertPagePerformanceToJSON,
+    },
+    api_performance: {
+      name: "接口性能",
+      requestBody: buildApiPerformanceRequestBody,
+      convertToJSON: convertApiPerformanceToJSON,
+    },
   };
 
   // ==================== SheetJS工具函数 ====================
@@ -220,9 +247,9 @@ function main() {
   }
 
   /**
-   * 构建API请求体
+   * 构建页面性能API请求体
    */
-  function buildRequestBody(startTime, endTime) {
+  function buildPagePerformanceRequestBody(startTime, endTime) {
     return {
       graph: {
         id: "0550085992-1762305438776",
@@ -394,6 +421,156 @@ function main() {
   }
 
   /**
+   * 构建接口性能API请求体
+   */
+  function buildApiPerformanceRequestBody(startTime, endTime) {
+    return {
+      graph: {
+        id: "0264878889-1756883945199",
+        graph_type: "table",
+        name: "接口性能",
+        time_series_conf: {
+          simple_queries: [
+            {
+              id: "2388206407-1756883945199",
+              metric: "",
+              metric_category: "",
+              metric_category_name: "",
+              filters: [],
+              aggregator: "",
+              downsample_interval: "0",
+              downsample_aggregator: "AVG",
+              group_by_fields: [],
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+              point_fill_type: "linear",
+              alphabet: "a",
+            },
+          ],
+          formula_queries: [],
+          precision: 0,
+          marker: [],
+          legend: ["MIN", "MAX", "AVG", "CURRENT"],
+          show_legend: true,
+          y_axis_conf: {},
+        },
+        table_conf: {
+          simple_queries: [
+            {
+              id: "6249610949-1756883945199",
+              metric: "slow_request_count",
+              alphabet: "a",
+              metric_category: "webpro_http",
+              metric_category_name: "请求",
+              filters: [],
+              filter_condition: {
+                type: "and",
+                children: [
+                  {
+                    type: "expression",
+                    values: ["20000"],
+                    op: "gt",
+                    dimension: "timing{'duration'}",
+                  },
+                  {
+                    type: "expression",
+                    values: ["200"],
+                    op: "eq",
+                    dimension: "res_status",
+                  },
+                ],
+              },
+              aggregator: "",
+              rollup_timeframe_by_aggregator: "SUM",
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+            },
+            {
+              id: "6114568763-1756883988221",
+              metric: "webpro_http.request_total",
+              alphabet: "b",
+              metric_category: "webpro_http",
+              metric_category_name: "请求",
+              filters: [],
+              filter_condition: {
+                type: "expression",
+                values: ["20000"],
+                op: "gt",
+                dimension: "timing{'duration'}",
+              },
+              aggregator: "PCT95",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+            },
+          ],
+          formula_queries: [],
+          precision: 0,
+          group_by_fields: ["req_path"],
+          order_by: "a",
+          asc: false,
+          limit: 0,
+        },
+        single_value_conf: {
+          simple_queries: [
+            {
+              id: "1782298756-1756883945199",
+              alphabet: "a",
+              metric: "",
+              metric_category: "",
+              metric_category_name: "",
+              filters: [],
+              aggregator: "",
+              rollup_timeframe_by_aggregator: "TOTAL",
+              unit: "",
+              rate: false,
+            },
+          ],
+          formula_queries: [],
+          precision: 2,
+        },
+        pie_conf: {
+          simple_queries: [
+            {
+              id: "6650064105-1756883945199",
+              metric: "",
+              alphabet: "a",
+              metric_category: "",
+              metric_category_name: "",
+              filters: [],
+              aggregator: "",
+              rollup_timeframe_by_aggregator: "TOTAL",
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+            },
+          ],
+          formula_queries: [],
+          group_by_fields: null,
+          precision: 2,
+        },
+      },
+      current_varibale_values: [],
+      start_time: startTime,
+      end_time: endTime,
+      granularity: 1,
+      granularity_unit: "d",
+      filter_condition: {
+        type: "and",
+        children: [],
+      },
+      os: "webpro",
+    };
+  }
+
+  /**
    * 发起API请求
    */
   function makeAPIRequest(appId, requestBody, csrfToken, retryCount = 0) {
@@ -450,9 +627,9 @@ function main() {
   }
 
   /**
-   * 转换数据为JSON格式
+   * 转换页面性能数据为JSON格式
    */
-  function convertToJSON(data, appId, appName, options = {}) {
+  function convertPagePerformanceToJSON(data, appId, appName, options = {}) {
     if (!data?.data?.table) {
       throw new Error("响应数据格式错误");
     }
@@ -475,7 +652,7 @@ function main() {
     const rows = table.rows || [];
 
     if (debug) {
-      console.log(`📊 处理数据: ${rows.length} 行原始数据`);
+      console.log(`📊 处理页面性能数据: ${rows.length} 行原始数据`);
       console.log(`⚙️ 过滤阈值: ${maxZeroThreshold} 个零值`);
     }
 
@@ -598,6 +775,150 @@ function main() {
   }
 
   /**
+   * 转换接口性能数据为JSON格式
+   */
+  function convertApiPerformanceToJSON(data, appId, appName, options = {}) {
+    if (!data?.data?.table) {
+      throw new Error("接口性能响应数据格式错误");
+    }
+
+    const {
+      debug = false,
+      minSlowRequestCount = 30, // 慢请求次数阈值
+    } = options;
+
+    const table = data.data.table;
+    const columns = table.columns || [];
+    const units = table.units || [];
+    const rows = table.rows || [];
+
+    if (debug) {
+      console.log(`📊 处理接口性能数据: ${rows.length} 行原始数据`);
+      console.log("接口性能列名:", columns);
+      console.log("接口性能单位:", units);
+    }
+
+    // 构建JSON数据
+    const jsonData = [];
+
+    /**
+     * 转换科学计数法为普通数字
+     */
+    function convertScientificNotation(value) {
+      if (typeof value === "string" && value.includes("e+")) {
+        const num = parseFloat(value);
+        return isNaN(num) ? value : num;
+      }
+      return value;
+    }
+
+    /**
+     * 格式化数值，保留2位小数，不使用科学计数法
+     */
+    function formatNumber(value) {
+      const numValue = parseFloat(value);
+      if (!isNaN(numValue)) {
+        // 对于极大或极小的数值，使用toFixed确保不使用科学计数法
+        if (Math.abs(numValue) < 0.001 || Math.abs(numValue) > 1000000) {
+          return Number(numValue.toFixed(2));
+        } else {
+          return Number(numValue.toFixed(2));
+        }
+      }
+      return value;
+    }
+
+    // 处理数据行
+    rows.forEach((row, rowIndex) => {
+      // 查找慢请求次数列
+      let slowRequestCount = 0;
+      let slowRequestCountIndex = -1;
+
+      columns.forEach((col, colIndex) => {
+        if (col.includes("慢请求次数")) {
+          slowRequestCountIndex = colIndex;
+          let cell = row[colIndex];
+
+          // 转换科学计数法
+          if (typeof cell === "string") {
+            cell = convertScientificNotation(cell);
+          }
+
+          slowRequestCount = parseFloat(cell) || 0;
+        }
+      });
+
+      // 过滤慢请求次数低于阈值的数据
+      if (slowRequestCount < minSlowRequestCount) {
+        if (debug) {
+          console.log(
+            `🚫 过滤接口性能行 ${
+              rowIndex + 1
+            }: 慢请求次数 ${slowRequestCount} < ${minSlowRequestCount}`
+          );
+        }
+        return; // 跳过此行
+      }
+
+      // 构建数据对象
+      const rowData = {
+        应用ID: appId,
+        应用名称: appName,
+      };
+
+      // 处理数据列
+      columns.forEach((col, colIndex) => {
+        let cell = row[colIndex];
+        const columnName = columns[colIndex] || "";
+
+        let displayValue = cell;
+
+        // 转换科学计数法
+        if (typeof cell === "string") {
+          displayValue = convertScientificNotation(cell);
+        }
+
+        // 数值列处理
+        const numericValue = parseFloat(displayValue);
+        if (!isNaN(numericValue)) {
+          if (numericValue === 0) {
+            displayValue = 0;
+          } else {
+            // 对于所有数值列，直接格式化数值，不添加单位
+            displayValue = formatNumber(displayValue);
+          }
+        }
+
+        // 构建列名（清理聚合器信息）
+        const cleanColName = col
+          .replace(/\(SUM\)/g, "")
+          .replace(/\(AVG\)/g, "")
+          .replace(/\(PCT95\)/g, "")
+          .replace(/请求-/g, "")
+          .trim();
+
+        rowData[cleanColName] = displayValue;
+      });
+
+      jsonData.push(rowData);
+
+      if (debug) {
+        console.log(`✅ 保留接口性能行 ${rowIndex + 1}:`, rowData);
+      }
+    });
+
+    if (debug) {
+      console.log(
+        `📈 接口性能数据: 保留 ${jsonData.length} 行，过滤 ${
+          rows.length - jsonData.length
+        } 行`
+      );
+    }
+
+    return jsonData;
+  }
+
+  /**
    * 格式化日期
    */
   function formatDate(timestamp) {
@@ -620,322 +941,343 @@ function main() {
   function injectStyles() {
     const style = document.createElement("style");
     style.textContent = `
-              /* 触发按钮样式 */
-              #apm-exporter-trigger {
-                  position: fixed;
-                  top: 80px;
-                  right: 20px;
-                  z-index: 10000;
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white;
-                  border: none;
-                  padding: 12px 24px;
-                  border-radius: 8px;
-                  font-size: 14px;
-                  font-weight: 600;
-                  cursor: pointer;
-                  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                  transition: all 0.3s ease;
-              }
-              
-              #apm-exporter-trigger:hover {
-                  transform: translateY(-2px);
-                  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-              }
-              
-              /* 主面板样式 */
-              #apm-exporter-panel {
-                  position: fixed;
-                  top: 50%;
-                  left: 50%;
-                  transform: translate(-50%, -50%);
-                  z-index: 10001;
-                  background: white;
-                  border-radius: 12px;
-                  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                  width: 650px;
-                  max-height: 85vh;
-                  overflow: hidden;
-                  display: none;
-                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-              }
-              
-              #apm-exporter-panel.show {
-                  display: block;
-                  animation: slideIn 0.3s ease;
-              }
-              
-              @keyframes slideIn {
-                  from {
-                      opacity: 0;
-                      transform: translate(-50%, -45%);
-                  }
-                  to {
-                      opacity: 1;
-                      transform: translate(-50%, -50%);
-                  }
-              }
-              
-              /* 面板头部 */
-              .apm-panel-header {
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white;
-                  padding: 16px 24px;
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  cursor: move;
-              }
-              
-              .apm-panel-title {
-                  font-size: 18px;
-                  font-weight: 600;
-                  margin: 0;
-              }
-              
-              .apm-panel-close {
-                  background: rgba(255, 255, 255, 0.2);
-                  border: none;
-                  color: white;
-                  width: 28px;
-                  height: 28px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 18px;
-                  line-height: 1;
-                  transition: background 0.2s;
-              }
-              
-              .apm-panel-close:hover {
-                  background: rgba(255, 255, 255, 0.3);
-              }
-              
-              /* 面板内容 */
-              .apm-panel-content {
-                  padding: 24px;
-                  max-height: calc(85vh - 120px);
-                  overflow-y: auto;
-              }
-              
-              /* 表单组样式 */
-              .apm-form-group {
-                  margin-bottom: 20px;
-              }
-              
-              .apm-form-label {
-                  display: block;
-                  margin-bottom: 8px;
-                  font-weight: 600;
-                  color: #333;
-                  font-size: 14px;
-              }
-              
-              .apm-form-hint {
-                  display: block;
-                  margin-top: 4px;
-                  font-size: 12px;
-                  color: #666;
-              }
-              
-              .apm-input,
-              .apm-textarea,
-              .apm-select {
-                  width: 100%;
-                  padding: 10px 12px;
-                  border: 1px solid #ddd;
-                  border-radius: 6px;
-                  font-size: 14px;
-                  transition: border-color 0.2s;
-                  box-sizing: border-box;
-              }
-              
-              .apm-input:focus,
-              .apm-textarea:focus,
-              .apm-select:focus {
-                  outline: none;
-                  border-color: #667eea;
-              }
-              
-              .apm-textarea {
-                  resize: vertical;
-                  min-height: 80px;
-                  font-family: monospace;
-              }
-              
-              .apm-row {
-                  display: flex;
-                  gap: 12px;
-              }
-              
-              .apm-row .apm-form-group {
-                  flex: 1;
-              }
-              
-              /* 按钮样式 */
-              .apm-btn {
-                  padding: 10px 20px;
-                  border: none;
-                  border-radius: 6px;
-                  font-size: 14px;
-                  font-weight: 600;
-                  cursor: pointer;
-                  transition: all 0.2s;
-              }
-              
-              .apm-btn-primary {
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white;
-              }
-              
-              .apm-btn-primary:hover:not(:disabled) {
-                  transform: translateY(-1px);
-                  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-              }
-              
-              .apm-btn-primary:disabled {
-                  opacity: 0.6;
-                  cursor: not-allowed;
-              }
-              
-              .apm-btn-secondary {
-                  background: #f0f0f0;
-                  color: #333;
-              }
-              
-              .apm-btn-secondary:hover {
-                  background: #e0e0e0;
-              }
-              
-              /* 进度条 */
-              .apm-progress-container {
-                  margin-top: 20px;
-                  display: none;
-              }
-              
-              .apm-progress-container.show {
-                  display: block;
-              }
-              
-              .apm-progress-bar-bg {
-                  background: #f0f0f0;
-                  border-radius: 10px;
-                  height: 20px;
-                  overflow: hidden;
-                  margin-bottom: 12px;
-              }
-              
-              .apm-progress-bar {
-                  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-                  height: 100%;
-                  transition: width 0.3s ease;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: white;
-                  font-size: 12px;
-                  font-weight: 600;
-              }
-              
-              /* 日志区域 */
-              .apm-log-container {
-                  background: #f8f9fa;
-                  border: 1px solid #e0e0e0;
-                  border-radius: 6px;
-                  padding: 12px;
-                  max-height: 200px;
-                  overflow-y: auto;
-                  font-size: 13px;
-                  font-family: monospace;
-              }
-              
-              .apm-log-item {
-                  padding: 4px 0;
-                  border-bottom: 1px solid #e8e8e8;
-              }
-              
-              .apm-log-item:last-child {
-                  border-bottom: none;
-              }
-              
-              .apm-log-item.success {
-                  color: #28a745;
-              }
-              
-              .apm-log-item.error {
-                  color: #dc3545;
-              }
-              
-              .apm-log-item.info {
-                  color: #17a2b8;
-              }
-              
-              /* 认证状态指示器 */
-              .apm-auth-status {
-                  display: inline-flex;
-                  align-items: center;
-                  gap: 6px;
-                  padding: 6px 12px;
-                  border-radius: 20px;
-                  font-size: 12px;
-                  font-weight: 600;
-                  margin-bottom: 16px;
-              }
-              
-              .apm-auth-status.success {
-                  background: #d4edda;
-                  color: #155724;
-              }
-              
-              .apm-auth-status.error {
-                  background: #f8d7da;
-                  color: #721c24;
-              }
-              
-              .apm-auth-status-dot {
-                  width: 8px;
-                  height: 8px;
-                  border-radius: 50%;
-                  background: currentColor;
-              }
-              
-              /* 遮罩层 */
-              #apm-exporter-overlay {
-                  position: fixed;
-                  top: 0;
-                  left: 0;
-                  right: 0;
-                  bottom: 0;
-                  background: rgba(0, 0, 0, 0.5);
-                  z-index: 10000;
-                  display: none;
-              }
-              
-              #apm-exporter-overlay.show {
-                  display: block;
-              }
-              
-              /* 滚动条样式 */
-              .apm-panel-content::-webkit-scrollbar,
-              .apm-log-container::-webkit-scrollbar {
-                  width: 8px;
-              }
-              
-              .apm-panel-content::-webkit-scrollbar-track,
-              .apm-log-container::-webkit-scrollbar-track {
-                  background: #f1f1f1;
-              }
-              
-              .apm-panel-content::-webkit-scrollbar-thumb,
-              .apm-log-container::-webkit-scrollbar-thumb {
-                  background: #888;
-                  border-radius: 4px;
-              }
-              
-              .apm-panel-content::-webkit-scrollbar-thumb:hover,
-              .apm-log-container::-webkit-scrollbar-thumb:hover {
-                  background: #555;
-              }
-          `;
+                /* 触发按钮样式 */
+                #apm-exporter-trigger {
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    z-index: 10000;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    transition: all 0.3s ease;
+                }
+                
+                #apm-exporter-trigger:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+                }
+                
+                /* 主面板样式 */
+                #apm-exporter-panel {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 10001;
+                    background: white;
+                    border-radius: 12px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    width: 680px;
+                    max-height: 85vh;
+                    overflow: hidden;
+                    display: none;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                }
+                
+                #apm-exporter-panel.show {
+                    display: block;
+                    animation: slideIn 0.3s ease;
+                }
+                
+                @keyframes slideIn {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -45%);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%);
+                    }
+                }
+                
+                /* 面板头部 */
+                .apm-panel-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 16px 24px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    cursor: move;
+                }
+                
+                .apm-panel-title {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin: 0;
+                }
+                
+                .apm-panel-close {
+                    background: rgba(255, 255, 255, 0.2);
+                    border: none;
+                    color: white;
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 18px;
+                    line-height: 1;
+                    transition: background 0.2s;
+                }
+                
+                .apm-panel-close:hover {
+                    background: rgba(255, 255, 255, 0.3);
+                }
+                
+                /* 面板内容 */
+                .apm-panel-content {
+                    padding: 24px;
+                    max-height: calc(85vh - 120px);
+                    overflow-y: auto;
+                }
+                
+                /* 表单组样式 */
+                .apm-form-group {
+                    margin-bottom: 20px;
+                }
+                
+                .apm-form-label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 600;
+                    color: #333;
+                    font-size: 14px;
+                }
+                
+                .apm-form-hint {
+                    display: block;
+                    margin-top: 4px;
+                    font-size: 12px;
+                    color: #666;
+                }
+                
+                .apm-input,
+                .apm-textarea,
+                .apm-select {
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    transition: border-color 0.2s;
+                    box-sizing: border-box;
+                }
+                
+                .apm-input:focus,
+                .apm-textarea:focus,
+                .apm-select:focus {
+                    outline: none;
+                    border-color: #667eea;
+                }
+                
+                .apm-textarea {
+                    resize: vertical;
+                    min-height: 80px;
+                    font-family: monospace;
+                }
+                
+                .apm-row {
+                    display: flex;
+                    gap: 12px;
+                }
+                
+                .apm-row .apm-form-group {
+                    flex: 1;
+                }
+                
+                /* 复选框组样式 */
+                .apm-checkbox-group {
+                    display: flex;
+                    gap: 16px;
+                    margin-top: 8px;
+                }
+                
+                .apm-checkbox-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                }
+                
+                .apm-checkbox {
+                    width: 16px;
+                    height: 16px;
+                    margin: 0;
+                }
+                
+                /* 按钮样式 */
+                .apm-btn {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .apm-btn-primary {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+                
+                .apm-btn-primary:hover:not(:disabled) {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                }
+                
+                .apm-btn-primary:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                
+                .apm-btn-secondary {
+                    background: #f0f0f0;
+                    color: #333;
+                }
+                
+                .apm-btn-secondary:hover {
+                    background: #e0e0e0;
+                }
+                
+                /* 进度条 */
+                .apm-progress-container {
+                    margin-top: 20px;
+                    display: none;
+                }
+                
+                .apm-progress-container.show {
+                    display: block;
+                }
+                
+                .apm-progress-bar-bg {
+                    background: #f0f0f0;
+                    border-radius: 10px;
+                    height: 20px;
+                    overflow: hidden;
+                    margin-bottom: 12px;
+                }
+                
+                .apm-progress-bar {
+                    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+                    height: 100%;
+                    transition: width 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+                
+                /* 日志区域 */
+                .apm-log-container {
+                    background: #f8f9fa;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 6px;
+                    padding: 12px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    font-size: 13px;
+                    font-family: monospace;
+                }
+                
+                .apm-log-item {
+                    padding: 4px 0;
+                    border-bottom: 1px solid #e8e8e8;
+                }
+                
+                .apm-log-item:last-child {
+                    border-bottom: none;
+                }
+                
+                .apm-log-item.success {
+                    color: #28a745;
+                }
+                
+                .apm-log-item.error {
+                    color: #dc3545;
+                }
+                
+                .apm-log-item.info {
+                    color: #17a2b8;
+                }
+                
+                /* 认证状态指示器 */
+                .apm-auth-status {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-bottom: 16px;
+                }
+                
+                .apm-auth-status.success {
+                    background: #d4edda;
+                    color: #155724;
+                }
+                
+                .apm-auth-status.error {
+                    background: #f8d7da;
+                    color: #721c24;
+                }
+                
+                .apm-auth-status-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    background: currentColor;
+                }
+                
+                /* 遮罩层 */
+                #apm-exporter-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 10000;
+                    display: none;
+                }
+                
+                #apm-exporter-overlay.show {
+                    display: block;
+                }
+                
+                /* 滚动条样式 */
+                .apm-panel-content::-webkit-scrollbar,
+                .apm-log-container::-webkit-scrollbar {
+                    width: 8px;
+                }
+                
+                .apm-panel-content::-webkit-scrollbar-track,
+                .apm-log-container::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                }
+                
+                .apm-panel-content::-webkit-scrollbar-thumb,
+                .apm-log-container::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 4px;
+                }
+                
+                .apm-panel-content::-webkit-scrollbar-thumb:hover,
+                .apm-log-container::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+            `;
     document.head.appendChild(style);
   }
 
@@ -958,66 +1300,80 @@ function main() {
     const panel = document.createElement("div");
     panel.id = "apm-exporter-panel";
     panel.innerHTML = `
-              <div class="apm-panel-header" id="apm-panel-header">
-                  <h2 class="apm-panel-title">🚀 火山引擎APM性能数据批量导出工具</h2>
-                  <button class="apm-panel-close" id="apm-panel-close">×</button>
-              </div>
-              <div class="apm-panel-content">
-                  <div id="apm-auth-status"></div>
-                  
-                  <div class="apm-form-group">
-                      <label class="apm-form-label">应用ID列表（每行一个）</label>
-                      <textarea class="apm-textarea" id="apm-app-ids" placeholder="591025&#10;602838"></textarea>
-                      <span class="apm-form-hint">请输入需要导出的应用ID，每行一个</span>
-                  </div>
-                  
-                  <div class="apm-form-group">
-                      <label class="apm-form-label">应用名称映射（JSON格式）</label>
-                      <textarea class="apm-textarea" id="apm-app-mapping" placeholder='{"591025": "国内酒店H5", "602838": "商家平台H5"}'></textarea>
-                      <span class="apm-form-hint">JSON格式: {"应用ID": "应用名称"}</span>
-                  </div>
-                  
-                  <div class="apm-form-group">
-                      <label class="apm-form-label">时间范围</label>
-                      <select class="apm-select" id="apm-time-range">
-                          <option value="7days">最近7天</option>
-                          <option value="30days">最近30天</option>
-                          <option value="90days">最近90天</option>
-                          <option value="custom">自定义时间</option>
-                      </select>
-                  </div>
-                  
-                  <div class="apm-row" id="apm-custom-time" style="display: none;">
-                      <div class="apm-form-group">
-                          <label class="apm-form-label">开始日期</label>
-                          <input type="date" class="apm-input" id="apm-start-date">
-                      </div>
-                      <div class="apm-form-group">
-                          <label class="apm-form-label">结束日期</label>
-                          <input type="date" class="apm-input" id="apm-end-date">
-                      </div>
-                  </div>
-                  
-                  <div class="apm-form-group">
-                      <label class="apm-form-label">请求间隔（毫秒）</label>
-                      <input type="number" class="apm-input" id="apm-request-interval" value="1000" min="500" step="100">
-                      <span class="apm-form-hint">建议设置1000ms以上，避免请求过于频繁</span>
-                  </div>
-                  
-                  <div class="apm-form-group">
-                      <button class="apm-btn apm-btn-primary" id="apm-export-btn" style="width: 100%;">
-                          开始批量导出
-                      </button>
-                  </div>
-                  
-                  <div class="apm-progress-container" id="apm-progress-container">
-                      <div class="apm-progress-bar-bg">
-                          <div class="apm-progress-bar" id="apm-progress-bar">0%</div>
-                      </div>
-                      <div class="apm-log-container" id="apm-log-container"></div>
-                  </div>
-              </div>
-          `;
+                <div class="apm-panel-header" id="apm-panel-header">
+                    <h2 class="apm-panel-title">🚀 火山引擎APM性能数据批量导出工具</h2>
+                    <button class="apm-panel-close" id="apm-panel-close">×</button>
+                </div>
+                <div class="apm-panel-content">
+                    <div id="apm-auth-status"></div>
+                    
+                    <div class="apm-form-group">
+                        <label class="apm-form-label">应用ID列表（每行一个）</label>
+                        <textarea class="apm-textarea" id="apm-app-ids" placeholder="591025&#10;602838"></textarea>
+                        <span class="apm-form-hint">请输入需要导出的应用ID，每行一个</span>
+                    </div>
+                    
+                    <div class="apm-form-group">
+                        <label class="apm-form-label">应用名称映射（JSON格式）</label>
+                        <textarea class="apm-textarea" id="apm-app-mapping" placeholder='{"591025": "国内酒店H5", "602838": "商家平台H5"}'></textarea>
+                        <span class="apm-form-hint">JSON格式: {"应用ID": "应用名称"}</span>
+                    </div>
+                    
+                    <div class="apm-form-group">
+                        <label class="apm-form-label">导出数据类型</label>
+                        <div class="apm-checkbox-group">
+                            <label class="apm-checkbox-label">
+                                <input type="checkbox" class="apm-checkbox" id="apm-data-type-page" value="page_performance" checked>
+                                <span>页面性能</span>
+                            </label>
+                            <label class="apm-checkbox-label">
+                                <input type="checkbox" class="apm-checkbox" id="apm-data-type-api" value="api_performance" checked>
+                                <span>接口性能</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="apm-form-group">
+                        <label class="apm-form-label">时间范围</label>
+                        <select class="apm-select" id="apm-time-range">
+                            <option value="7days">最近7天</option>
+                            <option value="30days">最近30天</option>
+                            <option value="90days">最近90天</option>
+                            <option value="custom">自定义时间</option>
+                        </select>
+                    </div>
+                    
+                    <div class="apm-row" id="apm-custom-time" style="display: none;">
+                        <div class="apm-form-group">
+                            <label class="apm-form-label">开始日期</label>
+                            <input type="date" class="apm-input" id="apm-start-date">
+                        </div>
+                        <div class="apm-form-group">
+                            <label class="apm-form-label">结束日期</label>
+                            <input type="date" class="apm-input" id="apm-end-date">
+                        </div>
+                    </div>
+                    
+                    <div class="apm-form-group">
+                        <label class="apm-form-label">请求间隔（毫秒）</label>
+                        <input type="number" class="apm-input" id="apm-request-interval" value="1000" min="500" step="100">
+                        <span class="apm-form-hint">建议设置1000ms以上，避免请求过于频繁</span>
+                    </div>
+                    
+                    <div class="apm-form-group">
+                        <button class="apm-btn apm-btn-primary" id="apm-export-btn" style="width: 100%;">
+                            开始批量导出
+                        </button>
+                    </div>
+                    
+                    <div class="apm-progress-container" id="apm-progress-container">
+                        <div class="apm-progress-bar-bg">
+                            <div class="apm-progress-bar" id="apm-progress-bar">0%</div>
+                        </div>
+                        <div class="apm-log-container" id="apm-log-container"></div>
+                    </div>
+                </div>
+            `;
     document.body.appendChild(panel);
 
     return { trigger, overlay, panel };
@@ -1030,11 +1386,11 @@ function main() {
     const statusEl = document.getElementById("apm-auth-status");
     const className = isValid ? "success" : "error";
     statusEl.innerHTML = `
-              <div class="apm-auth-status ${className}">
-                  <span class="apm-auth-status-dot"></span>
-                  ${message}
-              </div>
-          `;
+                <div class="apm-auth-status ${className}">
+                    <span class="apm-auth-status-dot"></span>
+                    ${message}
+                </div>
+            `;
   }
 
   /**
@@ -1091,6 +1447,24 @@ function main() {
   }
 
   /**
+   * 获取选中的数据类型
+   */
+  function getSelectedDataTypes() {
+    const selectedTypes = [];
+    const pageCheckbox = document.getElementById("apm-data-type-page");
+    const apiCheckbox = document.getElementById("apm-data-type-api");
+
+    if (pageCheckbox.checked) {
+      selectedTypes.push("page_performance");
+    }
+    if (apiCheckbox.checked) {
+      selectedTypes.push("api_performance");
+    }
+
+    return selectedTypes;
+  }
+
+  /**
    * 批量导出数据
    */
   async function batchExport() {
@@ -1115,6 +1489,13 @@ function main() {
       parseInt(document.getElementById("apm-request-interval").value) || 1000;
     const customStartDate = document.getElementById("apm-start-date").value;
     const customEndDate = document.getElementById("apm-end-date").value;
+
+    // 获取选中的数据类型
+    const selectedDataTypes = getSelectedDataTypes();
+    if (selectedDataTypes.length === 0) {
+      alert("请至少选择一种数据类型");
+      return;
+    }
 
     // 验证输入
     if (!appIdsText) {
@@ -1158,7 +1539,6 @@ function main() {
       customStartDate,
       customEndDate
     );
-    const requestBody = buildRequestBody(startTime, endTime);
 
     // 准备导出
     const exportBtn = document.getElementById("apm-export-btn");
@@ -1167,60 +1547,101 @@ function main() {
 
     toggleProgress(true);
     document.getElementById("apm-log-container").innerHTML = "";
-    updateProgress(0, appIds.length);
 
-    addLog(`开始批量导出，共 ${appIds.length} 个应用`, "info");
+    // 计算总任务数
+    const totalTasks = appIds.length * selectedDataTypes.length;
+    let completedTasks = 0;
+    updateProgress(0, totalTasks);
+
+    addLog(
+      `开始批量导出，共 ${appIds.length} 个应用，${selectedDataTypes.length} 种数据类型`,
+      "info"
+    );
     addLog(
       `时间范围: ${formatDate(startTime)} ~ ${formatDate(endTime)}`,
       "info"
     );
+    addLog(
+      `数据类型: ${selectedDataTypes
+        .map((type) => DATA_TYPES[type].name)
+        .join(", ")}`,
+      "info"
+    );
 
     // 收集所有应用的数据
-    const allAppData = {}; // 每个应用的数据
-    const allData = []; // 全量数据
+    const allData = {
+      page_performance: {}, // 页面性能数据
+      api_performance: {}, // 接口性能数据
+    };
+
+    const allCombinedData = {
+      page_performance: [], // 页面性能全量数据
+      api_performance: [], // 接口性能全量数据
+    };
 
     let successCount = 0;
     let failCount = 0;
 
-    // 批量处理
+    // 批量处理 - 按应用和数据类型的双重循环
     for (let i = 0; i < appIds.length; i++) {
       const appId = appIds[i];
       const appName = appMapping[appId] || appId;
 
-      try {
-        addLog(
-          `[${i + 1}/${
-            appIds.length
-          }] 正在获取 ${appName} (${appId}) 的数据...`,
-          "info"
-        );
+      // 为每个数据类型获取数据
+      for (let j = 0; j < selectedDataTypes.length; j++) {
+        const dataType = selectedDataTypes[j];
+        const dataTypeConfig = DATA_TYPES[dataType];
 
-        const response = await makeAPIRequest(appId, requestBody, csrfToken);
+        try {
+          addLog(
+            `[${
+              completedTasks + 1
+            }/${totalTasks}] 正在获取 ${appName} (${appId}) 的${
+              dataTypeConfig.name
+            }数据...`,
+            "info"
+          );
 
-        // 转换为JSON格式
-        const jsonData = convertToJSON(response, appId, appName);
+          // 构建对应数据类型的请求体
+          const requestBody = dataTypeConfig.requestBody(startTime, endTime);
 
-        // 保存到应用数据
-        allAppData[appId] = {
-          name: appName,
-          data: jsonData,
-        };
+          const response = await makeAPIRequest(appId, requestBody, csrfToken);
 
-        // 添加到全量数据
-        allData.push(...jsonData);
+          // 转换为JSON格式
+          const jsonData = dataTypeConfig.convertToJSON(
+            response,
+            appId,
+            appName
+          );
 
-        addLog(`✅ ${appName} 数据获取成功`, "success");
-        successCount++;
-      } catch (error) {
-        addLog(`❌ ${appName} 数据获取失败: ${error.message}`, "error");
-        failCount++;
-      }
+          // 保存到数据类型数据
+          if (!allData[dataType][appId]) {
+            allData[dataType][appId] = {
+              name: appName,
+              data: jsonData,
+            };
+          }
 
-      updateProgress(i + 1, appIds.length);
+          // 添加到全量数据
+          allCombinedData[dataType].push(...jsonData);
 
-      // 延迟下一个请求
-      if (i < appIds.length - 1) {
-        await delay(requestInterval);
+          addLog(`✅ ${appName} ${dataTypeConfig.name}数据获取成功`, "success");
+          successCount++;
+        } catch (error) {
+          addLog(
+            `❌ ${appName} ${dataTypeConfig.name}数据获取失败: ${error.message}`,
+            "error"
+          );
+          failCount++;
+        }
+
+        completedTasks++;
+        updateProgress(completedTasks, totalTasks);
+
+        // 延迟下一个请求
+        if (completedTasks < totalTasks) {
+          await delay(requestInterval);
+        }
       }
     }
 
@@ -1230,38 +1651,64 @@ function main() {
 
       const workbook = createWorkbook();
 
-      // 为每个应用创建sheet
-      Object.keys(allAppData).forEach((appId) => {
-        const appInfo = allAppData[appId];
-        const sheetName = appInfo.name.substring(0, 31); // Excel sheet名称最大31字符
+      // 为每种数据类型和应用创建sheet
+      selectedDataTypes.forEach((dataType) => {
+        const dataTypeConfig = DATA_TYPES[dataType];
+        const dataForType = allData[dataType];
 
-        if (appInfo.data && appInfo.data.length > 0) {
-          const sheet = jsonToSheet(appInfo.data);
-          if (sheet) {
-            workbook.SheetNames.push(sheetName);
-            workbook.Sheets[sheetName] = sheet;
-            addLog(`✅ 创建应用sheet: ${sheetName}`, "success");
+        // 为每个应用创建sheet
+        Object.keys(dataForType).forEach((appId) => {
+          const appInfo = dataForType[appId];
+          const sheetName = `${dataTypeConfig.name}_${appInfo.name}`.substring(
+            0,
+            31
+          ); // Excel sheet名称最大31字符
+
+          if (appInfo.data && appInfo.data.length > 0) {
+            const sheet = jsonToSheet(appInfo.data);
+            if (sheet) {
+              workbook.SheetNames.push(sheetName);
+              workbook.Sheets[sheetName] = sheet;
+              addLog(
+                `✅ 创建${dataTypeConfig.name}应用sheet: ${sheetName}`,
+                "success"
+              );
+            }
+          } else {
+            addLog(
+              `⚠️ 应用 ${appInfo.name} 无${dataTypeConfig.name}数据，跳过创建sheet`,
+              "info"
+            );
+          }
+        });
+
+        // 创建全量数据sheet
+        const combinedData = allCombinedData[dataType];
+        if (combinedData.length > 0) {
+          const allDataSheetName = `${dataTypeConfig.name}_全量数据`.substring(
+            0,
+            31
+          );
+          const allDataSheet = jsonToSheet(combinedData);
+          if (allDataSheet) {
+            workbook.SheetNames.push(allDataSheetName);
+            workbook.Sheets[allDataSheetName] = allDataSheet;
+            addLog(`✅ 创建${dataTypeConfig.name}全量数据sheet`, "success");
           }
         } else {
-          addLog(`⚠️ 应用 ${appInfo.name} 无数据，跳过创建sheet`, "info");
+          addLog(
+            `⚠️ 无有效${dataTypeConfig.name}数据，跳过创建全量数据sheet`,
+            "info"
+          );
         }
       });
 
-      // 创建全量数据sheet
-      if (allData.length > 0) {
-        const allDataSheet = jsonToSheet(allData);
-        if (allDataSheet) {
-          workbook.SheetNames.push("全量数据");
-          workbook.Sheets["全量数据"] = allDataSheet;
-          addLog("✅ 创建全量数据sheet", "success");
-        }
-      } else {
-        addLog("⚠️ 无有效数据，跳过创建全量数据sheet", "info");
-      }
-
       // 生成文件名并下载
       const timeLabel = TIME_RANGES[timeRange]?.label || "自定义时间";
-      const filename = `APM性能数据_${timeLabel}_${formatDate(
+      const dataTypesLabel = selectedDataTypes
+        .map((type) => DATA_TYPES[type].name)
+        .join("+");
+      const filename = `APM${dataTypesLabel}数据_${timeLabel}_${formatDate(
         startTime
       )}_${formatDate(endTime)}.xlsx`;
 
