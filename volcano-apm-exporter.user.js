@@ -50,6 +50,11 @@ function main() {
       requestBody: buildApiPerformanceRequestBody,
       convertToJSON: convertApiPerformanceToJSON,
     },
+    slo: {
+      name: "SLO",
+      requestBody: buildSLORequestBody,
+      convertToJSON: convertSLOToJSON,
+    },
   };
 
   // ==================== SheetJS工具函数 ====================
@@ -202,14 +207,7 @@ function main() {
    */
   function getCSRFToken() {
     const metaToken = document.querySelector('meta[name="csrfToken"]');
-    console.log(
-      metaToken,
-      "metaToken",
-      document.cookie,
-      "document.cookie",
-      document
-    );
-
+    
     if (metaToken) return metaToken.getAttribute("content");
 
     const cookieToken = getCookie("x-csrf-token") || getCookie("csrfToken");
@@ -571,6 +569,193 @@ function main() {
   }
 
   /**
+   * 构建SLO API请求体
+   */
+  function buildSLORequestBody(startTime, endTime) {
+    return {
+      graph: {
+        id: "5408531819-1760494055171",
+        graph_type: "table",
+        name: "SLO",
+        compare_config: { cmp_n: 1, unit: 0 },
+        time_series_conf: {
+          simple_queries: [
+            {
+              id: "8874689124-1760494055172",
+              metric: "",
+              metric_category: "",
+              metric_category_name: "",
+              filters: [],
+              aggregator: "",
+              downsample_interval: "0",
+              downsample_aggregator: "AVG",
+              group_by_fields: [],
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+              point_fill_type: "linear",
+              alphabet: "a",
+            },
+          ],
+          formula_queries: [],
+          precision: 2,
+          marker: [],
+          legend: ["MIN", "MAX", "AVG", "CURRENT"],
+          show_legend: true,
+          y_axis_conf: {},
+        },
+        table_conf: {
+          simple_queries: [
+            {
+              id: "1880593716-1760494055172",
+              metric: "webpro_js_error_percent",
+              alphabet: "a",
+              metric_category: "webpro_js_error",
+              metric_category_name: "JS错误",
+              filters: [],
+              filter_condition: { type: "" },
+              aggregator: "",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "%",
+              rate: false,
+              hide: false,
+            },
+            {
+              id: "8683594024-1760494074897",
+              metric: "webpro_perf.ttfb",
+              alphabet: "b",
+              metric_category: "webpro_performance",
+              metric_category_name: "性能",
+              filters: [],
+              filter_condition: { type: "" },
+              aggregator: "PCT90",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "ms",
+              rate: false,
+              hide: false,
+            },
+            {
+              id: "1414909853-1760494075594",
+              metric: "webpro_perf.lcp",
+              alphabet: "c",
+              metric_category: "webpro_performance",
+              metric_category_name: "性能",
+              filters: [],
+              filter_condition: { type: "" },
+              aggregator: "PCT75",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "ms",
+              rate: false,
+              hide: false,
+            },
+            {
+              id: "3843410798-1760494076197",
+              metric: "webpro_perf.cls",
+              alphabet: "d",
+              metric_category: "webpro_performance",
+              metric_category_name: "性能",
+              filters: [],
+              filter_condition: { type: "" },
+              aggregator: "PCT75",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+            },
+            {
+              id: "3564757679-1760494076770",
+              metric: "webpro_perf.inp",
+              alphabet: "e",
+              metric_category: "webpro_performance",
+              metric_category_name: "性能",
+              filters: [],
+              filter_condition: { type: "" },
+              aggregator: "PCT75",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "ms",
+              rate: false,
+              hide: false,
+            },
+            {
+              id: "2223586182-1760494077365",
+              metric: "webpro_http.request_total",
+              alphabet: "f",
+              metric_category: "webpro_http",
+              metric_category_name: "请求",
+              filters: [],
+              filter_condition: { type: "" },
+              aggregator: "PCT95",
+              rollup_timeframe_by_aggregator: "AVG",
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+            },
+          ],
+          formula_queries: [],
+          precision: 2,
+          group_by_fields: [],
+          order_by: "",
+          asc: false,
+          limit: 0,
+        },
+        single_value_conf: {
+          simple_queries: [
+            {
+              id: "3601102303-1760494055172",
+              alphabet: "a",
+              metric: "",
+              metric_category: "",
+              metric_category_name: "",
+              filters: [],
+              aggregator: "",
+              rollup_timeframe_by_aggregator: "TOTAL",
+              unit: "",
+              rate: false,
+            },
+          ],
+          formula_queries: [],
+          precision: 2,
+        },
+        pie_conf: {
+          simple_queries: [
+            {
+              id: "1711683607-1760494055172",
+              metric: "",
+              alphabet: "a",
+              metric_category: "",
+              metric_category_name: "",
+              filters: [],
+              aggregator: "",
+              rollup_timeframe_by_aggregator: "TOTAL",
+              alias: "",
+              unit: "",
+              rate: false,
+              hide: false,
+            },
+          ],
+          formula_queries: [],
+          group_by_fields: null,
+          precision: 2,
+        },
+      },
+      current_varibale_values: [],
+      start_time: startTime,
+      end_time: endTime,
+      granularity: 1,
+      granularity_unit: "d",
+      filter_condition: { type: "and", children: [] },
+      os: "webpro",
+    };
+  }
+
+  /**
    * 发起API请求
    */
   function makeAPIRequest(appId, requestBody, csrfToken, retryCount = 0) {
@@ -919,6 +1104,58 @@ function main() {
   }
 
   /**
+   * 转换SLO数据为JSON格式
+   */
+  function convertSLOToJSON(data, appId, appName, options = {}) {
+    if (!data?.data?.table?.rows) {
+      throw new Error("SLO响应数据格式错误");
+    }
+
+    const rows = data.data.table.rows;
+    if (rows.length === 0) {
+      return [];
+    }
+
+    // SLO请求通常返回单个聚合行，取第一行
+    const row = rows[0];
+
+    // 列索引映射 (基于buildSLORequestBody中的顺序和response)
+    // [0] "JS错误-错误率(AVG)"
+    // [1] "性能-首字节网络请求耗时(TTFB)(AVG)"
+    // [2] "性能-最大内容绘制时间(LCP)(AVG)"
+    // [3] "性能-累计布局偏移(CLS)(AVG)"
+    // [4] "性能-交互到下次绘制延时(INP)(AVG)"
+    // [5] "请求-请求耗时(AVG)"
+
+    const getValue = (index) => {
+      const val = parseFloat(row[index]);
+      return isNaN(val) ? 0 : val;
+    };
+
+    const formatValue = (val, unit, fixed = 2) => {
+        const num = Number(val.toFixed(fixed));
+        if (num === 0) return 0;
+        return `${num}${unit}`;
+    };
+    
+    // CLS specific format, no unit
+    const formatCLS = (val) => {
+        return Number(val.toFixed(6));
+    };
+
+    const rowData = {
+      应用ID: appId,
+      应用名称: appName,
+      "性能-首字节网络请求耗时(TTFB)(AVG)": formatValue(getValue(1), "ms", 2),
+      "性能-最大内容绘制时间(LCP)(AVG)": formatValue(getValue(2), "ms", 2),
+      "性能-交互到下次绘制延时(INP)(AVG)": formatValue(getValue(4), "ms", 2),
+      "性能-累计布局偏移(CLS)(AVG)": formatCLS(getValue(3)),
+    };
+
+    return [rowData];
+  }
+
+  /**
    * 格式化日期
    */
   function formatDate(timestamp) {
@@ -1113,6 +1350,66 @@ function main() {
                     margin: 0;
                 }
                 
+                /* 应用列表样式 */
+                .apm-app-list-container {
+                    border: 1px solid #ddd;
+                    border-radius: 6px;
+                    padding: 12px;
+                    margin-bottom: 8px;
+                    background: #f9f9f9;
+                    max-height: 200px;
+                    overflow-y: auto;
+                }
+                
+                .apm-list-controls {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 10px;
+                    border-bottom: 1px solid #eee;
+                    padding-bottom: 8px;
+                }
+                
+                .apm-btn-xs {
+                    padding: 4px 8px;
+                    font-size: 12px;
+                    border: 1px solid #ccc;
+                    background: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                }
+                .apm-btn-xs:hover {
+                    background: #f0f0f0;
+                }
+                
+                .apm-app-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                    gap: 8px;
+                }
+                
+                .apm-app-checkbox-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                }
+                .apm-app-checkbox-label:hover {
+                    background: #e6e6e6;
+                }
+                
+                .apm-app-name {
+                    font-weight: 500;
+                    color: #333;
+                }
+                
+                .apm-app-id {
+                    font-size: 11px;
+                    color: #888;
+                }
+
                 /* 按钮样式 */
                 .apm-btn {
                     padding: 10px 20px;
@@ -1308,9 +1605,11 @@ function main() {
                     <div id="apm-auth-status"></div>
                     
                     <div class="apm-form-group">
-                        <label class="apm-form-label">应用ID列表（每行一个）</label>
-                        <textarea class="apm-textarea" id="apm-app-ids" placeholder="591025&#10;602838"></textarea>
-                        <span class="apm-form-hint">请输入需要导出的应用ID，每行一个</span>
+                        <label class="apm-form-label">选择导出应用</label>
+                        <div id="apm-app-list-container" class="apm-app-list-container">
+                            <!-- JS渲染的应用列表 -->
+                        </div>
+                        <span class="apm-form-hint">请在下方"应用名称映射"中配置更多应用</span>
                     </div>
                     
                     <div class="apm-form-group">
@@ -1329,6 +1628,10 @@ function main() {
                             <label class="apm-checkbox-label">
                                 <input type="checkbox" class="apm-checkbox" id="apm-data-type-api" value="api_performance" checked>
                                 <span>接口性能</span>
+                            </label>
+                             <label class="apm-checkbox-label">
+                                <input type="checkbox" class="apm-checkbox" id="apm-data-type-slo" value="slo">
+                                <span>SLO (核心指标)</span>
                             </label>
                         </div>
                     </div>
@@ -1377,6 +1680,58 @@ function main() {
     document.body.appendChild(panel);
 
     return { trigger, overlay, panel };
+  }
+
+  /**
+   * 渲染应用选择列表
+   */
+  function renderAppSelector(mapping, selectedIds = []) {
+    const container = document.getElementById("apm-app-list-container");
+    container.innerHTML = "";
+    
+    // 按应用名称排序
+    const sortedEntries = Object.entries(mapping).sort((a, b) => a[1].localeCompare(b[1], 'zh'));
+
+    if (sortedEntries.length === 0) {
+        container.innerHTML = '<div style="padding:10px;text-align:center;color:#999;">请在下方配置应用映射</div>';
+        return;
+    }
+
+    // 全选/全不选控制
+    const controls = document.createElement("div");
+    controls.className = "apm-list-controls";
+    controls.innerHTML = `
+        <button type="button" class="apm-btn-xs" id="apm-select-all">全选</button>
+        <button type="button" class="apm-btn-xs" id="apm-deselect-all">全不选</button>
+    `;
+    container.appendChild(controls);
+
+    const listDiv = document.createElement("div");
+    listDiv.className = "apm-app-grid";
+
+    sortedEntries.forEach(([id, name]) => {
+      const label = document.createElement("label");
+      label.className = "apm-app-checkbox-label";
+      // 如果没有传入selectedIds（即首次加载且无缓存），或者该ID在缓存中，则选中
+      const isChecked = selectedIds.length === 0 || selectedIds.includes(id.toString());
+      
+      label.innerHTML = `
+        <input type="checkbox" class="apm-app-checkbox" value="${id}" ${isChecked ? "checked" : ""}>
+        <span class="apm-app-name" title="${id}">${name}</span>
+        <span class="apm-app-id">${id}</span>
+      `;
+      listDiv.appendChild(label);
+    });
+    
+    container.appendChild(listDiv);
+    
+    // 绑定控制事件
+    document.getElementById("apm-select-all").addEventListener("click", () => {
+        container.querySelectorAll(".apm-app-checkbox").forEach(cb => cb.checked = true);
+    });
+    document.getElementById("apm-deselect-all").addEventListener("click", () => {
+        container.querySelectorAll(".apm-app-checkbox").forEach(cb => cb.checked = false);
+    });
   }
 
   /**
@@ -1453,12 +1808,16 @@ function main() {
     const selectedTypes = [];
     const pageCheckbox = document.getElementById("apm-data-type-page");
     const apiCheckbox = document.getElementById("apm-data-type-api");
+    const sloCheckbox = document.getElementById("apm-data-type-slo");
 
     if (pageCheckbox.checked) {
       selectedTypes.push("page_performance");
     }
     if (apiCheckbox.checked) {
       selectedTypes.push("api_performance");
+    }
+    if (sloCheckbox && sloCheckbox.checked) {
+        selectedTypes.push("slo");
     }
 
     return selectedTypes;
@@ -1480,7 +1839,6 @@ function main() {
     }
 
     // 获取配置
-    const appIdsText = document.getElementById("apm-app-ids").value.trim();
     const appMappingText = document
       .getElementById("apm-app-mapping")
       .value.trim();
@@ -1497,20 +1855,11 @@ function main() {
       return;
     }
 
-    // 验证输入
-    if (!appIdsText) {
-      alert("请输入至少一个应用ID");
-      return;
-    }
-
-    // 解析应用ID列表
-    const appIds = appIdsText
-      .split("\n")
-      .map((id) => id.trim())
-      .filter((id) => id.length > 0);
+    // 获取选中的应用ID
+    const appIds = Array.from(document.querySelectorAll('.apm-app-checkbox:checked')).map(cb => cb.value);
 
     if (appIds.length === 0) {
-      alert("未找到有效的应用ID");
+      alert("请至少选择一个应用");
       return;
     }
 
@@ -1572,11 +1921,13 @@ function main() {
     const allData = {
       page_performance: {}, // 页面性能数据
       api_performance: {}, // 接口性能数据
+      slo: {}, // SLO数据
     };
 
     const allCombinedData = {
       page_performance: [], // 页面性能全量数据
       api_performance: [], // 接口性能全量数据
+      slo: [], // SLO全量数据
     };
 
     let successCount = 0;
@@ -1656,31 +2007,34 @@ function main() {
         const dataTypeConfig = DATA_TYPES[dataType];
         const dataForType = allData[dataType];
 
-        // 为每个应用创建sheet
-        Object.keys(dataForType).forEach((appId) => {
-          const appInfo = dataForType[appId];
-          const sheetName = `${dataTypeConfig.name}_${appInfo.name}`.substring(
-            0,
-            31
-          ); // Excel sheet名称最大31字符
+        // 为每个应用创建sheet (SLO通常不需要每应用一个sheet，但保留逻辑以防万一)
+        // 如果是SLO模式，用户更倾向于看全量数据表，而不是每个应用一个单行sheet
+        if (dataType !== 'slo') {
+            Object.keys(dataForType).forEach((appId) => {
+              const appInfo = dataForType[appId];
+              const sheetName = `${dataTypeConfig.name}_${appInfo.name}`.substring(
+                0,
+                31
+              ); // Excel sheet名称最大31字符
 
-          if (appInfo.data && appInfo.data.length > 0) {
-            const sheet = jsonToSheet(appInfo.data);
-            if (sheet) {
-              workbook.SheetNames.push(sheetName);
-              workbook.Sheets[sheetName] = sheet;
-              addLog(
-                `✅ 创建${dataTypeConfig.name}应用sheet: ${sheetName}`,
-                "success"
-              );
-            }
-          } else {
-            addLog(
-              `⚠️ 应用 ${appInfo.name} 无${dataTypeConfig.name}数据，跳过创建sheet`,
-              "info"
-            );
-          }
-        });
+              if (appInfo.data && appInfo.data.length > 0) {
+                const sheet = jsonToSheet(appInfo.data);
+                if (sheet) {
+                  workbook.SheetNames.push(sheetName);
+                  workbook.Sheets[sheetName] = sheet;
+                  addLog(
+                    `✅ 创建${dataTypeConfig.name}应用sheet: ${sheetName}`,
+                    "success"
+                  );
+                }
+              } else {
+                addLog(
+                  `⚠️ 应用 ${appInfo.name} 无${dataTypeConfig.name}数据，跳过创建sheet`,
+                  "info"
+                );
+              }
+            });
+        }
 
         // 创建全量数据sheet
         const combinedData = allCombinedData[dataType];
@@ -1728,7 +2082,9 @@ function main() {
 
     // 保存配置到localStorage
     try {
-      GM_setValue("apm_app_ids", appIdsText);
+      // 保存选中的ID列表
+      const selectedIds = Array.from(document.querySelectorAll('.apm-app-checkbox:checked')).map(cb => cb.value);
+      GM_setValue("apm_app_ids", JSON.stringify(selectedIds));
       GM_setValue("apm_app_mapping", appMappingText);
     } catch (e) {
       console.warn("保存配置失败:", e);
@@ -1747,16 +2103,28 @@ function main() {
 
     // 加载保存的配置
     try {
-      const savedAppIds = GM_getValue("apm_app_ids", "");
+      const savedAppIds = GM_getValue("apm_app_ids", "[]");
       const savedMapping = GM_getValue(
         "apm_app_mapping",
         JSON.stringify(DEFAULT_APP_MAPPING, null, 2)
       );
 
-      if (savedAppIds) {
-        document.getElementById("apm-app-ids").value = savedAppIds;
-      }
+      // 处理 savedAppIds 兼容性（可能是以前的纯字符串）
+      let selectedIds = [];
+      try {
+          if (savedAppIds.startsWith("[")) {
+              selectedIds = JSON.parse(savedAppIds);
+          } else {
+              // 旧格式兼容：每行一个ID
+               selectedIds = savedAppIds.split(/[\r\n]+/).map(s => s.trim()).filter(Boolean);
+          }
+      } catch(e) { console.warn("解析已保存的App IDs失败", e); }
+
       document.getElementById("apm-app-mapping").value = savedMapping;
+      
+      // 渲染应用列表
+      renderAppSelector(JSON.parse(savedMapping), selectedIds);
+      
     } catch (e) {
       console.warn("加载配置失败:", e);
       document.getElementById("apm-app-mapping").value = JSON.stringify(
@@ -1764,6 +2132,7 @@ function main() {
         null,
         2
       );
+      renderAppSelector(DEFAULT_APP_MAPPING);
     }
 
     // 设置默认日期
@@ -1793,6 +2162,19 @@ function main() {
       .getElementById("apm-panel-close")
       .addEventListener("click", closePanel);
     overlay.addEventListener("click", closePanel);
+
+    // 事件监听：应用映射变更，刷新列表
+    const mappingTextarea = document.getElementById("apm-app-mapping");
+    mappingTextarea.addEventListener("blur", () => {
+        try {
+            const mapping = JSON.parse(mappingTextarea.value);
+            // 获取当前选中的ID，以便在刷新后尽可能保持选中状态
+            const currentSelected = Array.from(document.querySelectorAll('.apm-app-checkbox:checked')).map(cb => cb.value);
+            renderAppSelector(mapping, currentSelected);
+        } catch (e) {
+            // 解析失败不刷新，或者可以给个提示
+        }
+    });
 
     // 事件监听：时间范围选择
     document
