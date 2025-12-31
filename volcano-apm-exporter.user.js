@@ -1,3 +1,4 @@
+
 function main() {
   "use strict";
 
@@ -242,6 +243,109 @@ function main() {
     const startTime = endTime - days * 86400;
 
     return { startTime, endTime };
+  }
+
+  /**
+   * 合并接口性能数据中的重复接口（全量数据使用）
+   * 1. 根据请求路径合并
+   * 2. 慢请求次数等计数指标：求和
+   * 3. 耗时等性能指标：按"慢请求次数"加权平均
+   */
+  function mergeApiPerformanceData(data) {
+    if (!data || data.length === 0) return data;
+
+    const headers = Object.keys(data[0]);
+    // 寻找关键列
+    const pathKey = headers.find(key => 
+        key.includes("路径") || key.includes("path") || key.toLowerCase().includes("url") || key === "req_path"
+    );
+    
+    // 寻找作为权重的列 (使用慢请求次数)
+    const weightKey = headers.find(key => 
+        (key.includes("慢请求次数") || key.includes("slow_request_count"))
+    );
+
+    if (!pathKey) {
+        console.warn("合并接口数据时未找到路径列，跳过合并");
+        return data;
+    }
+    
+    if (!weightKey) {
+        console.warn("合并接口数据时未找到权重列(慢请求次数)，将使用简单平均");
+    } else {
+        console.log("合并接口数据使用权重列:", weightKey);
+    }
+
+    const map = new Map();
+
+    data.forEach(item => {
+        const path = item[pathKey];
+        if (!map.has(path)) {
+            // 初始化：保留原始数据结构，添加辅助属性
+            map.set(path, {
+                _template: item, // 模板用于保留非数值列
+                _sources: [item], // 记录所有来源行
+                _appIds: new Set([item["应用ID"]]),
+                _appNames: new Set([item["应用名称"]])
+            });
+        } else {
+            const entry = map.get(path);
+            entry._sources.push(item);
+            entry._appIds.add(item["应用ID"]);
+            entry._appNames.add(item["应用名称"]);
+        }
+    });
+
+    // 聚合计算
+    const mergedData = Array.from(map.values()).map(entry => {
+        const result = { ...entry._template };
+        const sources = entry._sources;
+        
+        // 合并应用信息
+        result["应用ID"] = Array.from(entry._appIds).join(", ");
+        result["应用名称"] = Array.from(entry._appNames).join(", ");
+
+        // 处理所有数值列
+        headers.forEach(key => {
+            // 跳过标识列
+            if (key === pathKey || key === "应用ID" || key === "应用名称") return;
+            
+            // 检查该列是否为数值（检查第一个模板数据）
+            if (typeof result[key] === 'number') {
+                const isCountColumn = key.includes("次数") || key.includes("Count") || key.includes("Total") || key.includes("sum") || key.includes("总数");
+                
+                if (isCountColumn) {
+                    // 情况1: 次数类指标 -> 直接累加
+                    const sum = sources.reduce((acc, curr) => acc + (Number(curr[key]) || 0), 0);
+                    result[key] = sum;
+                } else {
+                    // 情况2: 耗时/比率类指标 -> 加权平均
+                    let totalWeight = 0;
+                    let weightedSum = 0;
+                    
+                    sources.forEach(source => {
+                        const val = Number(source[key]) || 0;
+                        // 获取权重：如果有权重列，使用它；否则使用1 (简单平均)
+                        let weight = 1;
+                        if (weightKey && source[weightKey] !== undefined) {
+                            weight = Number(source[weightKey]) || 0;
+                        }
+                        
+                        weightedSum += val * weight;
+                        totalWeight += weight;
+                    });
+                    
+                    // 如果总权重为0，避免除以0
+                    result[key] = totalWeight > 0 ? Number((weightedSum / totalWeight).toFixed(2)) : 0;
+                }
+            }
+        });
+
+        return result;
+    });
+
+    console.log(`✅ 接口合并完成: 原始 ${data.length} 行 -> 合并后 ${mergedData.length} 行`);
+    return mergedData;
   }
 
   /**
@@ -506,7 +610,7 @@ function main() {
               unit: "",
               rate: false,
               hide: false,
-            },
+            }
           ],
           formula_queries: [],
           precision: 0,
@@ -969,7 +1073,7 @@ function main() {
 
     const {
       debug = false,
-      minSlowRequestCount = 30, // 慢请求次数阈值
+      minSlowRequestCount = 10, // 修改为0，不因慢请求少而过滤数据
     } = options;
 
     const table = data.data.table;
@@ -980,7 +1084,6 @@ function main() {
     if (debug) {
       console.log(`📊 处理接口性能数据: ${rows.length} 行原始数据`);
       console.log("接口性能列名:", columns);
-      console.log("接口性能单位:", units);
     }
 
     // 构建JSON数据
@@ -1017,18 +1120,14 @@ function main() {
     rows.forEach((row, rowIndex) => {
       // 查找慢请求次数列
       let slowRequestCount = 0;
-      let slowRequestCountIndex = -1;
 
       columns.forEach((col, colIndex) => {
         if (col.includes("慢请求次数")) {
-          slowRequestCountIndex = colIndex;
           let cell = row[colIndex];
-
           // 转换科学计数法
           if (typeof cell === "string") {
             cell = convertScientificNotation(cell);
           }
-
           slowRequestCount = parseFloat(cell) || 0;
         }
       });
@@ -1054,7 +1153,6 @@ function main() {
       // 处理数据列
       columns.forEach((col, colIndex) => {
         let cell = row[colIndex];
-        const columnName = columns[colIndex] || "";
 
         let displayValue = cell;
 
@@ -1086,19 +1184,7 @@ function main() {
       });
 
       jsonData.push(rowData);
-
-      if (debug) {
-        console.log(`✅ 保留接口性能行 ${rowIndex + 1}:`, rowData);
-      }
     });
-
-    if (debug) {
-      console.log(
-        `📈 接口性能数据: 保留 ${jsonData.length} 行，过滤 ${
-          rows.length - jsonData.length
-        } 行`
-      );
-    }
 
     return jsonData;
   }
@@ -1118,14 +1204,6 @@ function main() {
 
     // SLO请求通常返回单个聚合行，取第一行
     const row = rows[0];
-
-    // 列索引映射 (基于buildSLORequestBody中的顺序和response)
-    // [0] "JS错误-错误率(AVG)"
-    // [1] "性能-首字节网络请求耗时(TTFB)(AVG)"
-    // [2] "性能-最大内容绘制时间(LCP)(AVG)"
-    // [3] "性能-累计布局偏移(CLS)(AVG)"
-    // [4] "性能-交互到下次绘制延时(INP)(AVG)"
-    // [5] "请求-请求耗时(AVG)"
 
     const getValue = (index) => {
       const val = parseFloat(row[index]);
@@ -2037,8 +2115,14 @@ function main() {
         }
 
         // 创建全量数据sheet
-        const combinedData = allCombinedData[dataType];
+        let combinedData = allCombinedData[dataType];
         if (combinedData.length > 0) {
+          // 如果是接口性能数据，先进行合并处理
+          if (dataType === 'api_performance') {
+            addLog(`🔄 正在合并接口性能重复数据...`, "info");
+            combinedData = mergeApiPerformanceData(combinedData);
+          }
+
           const allDataSheetName = `${dataTypeConfig.name}_全量数据`.substring(
             0,
             31
